@@ -36,37 +36,39 @@ const Login = () => {
       return;
     }
 
-    try {
-      const config = {
-        header: {
-          "Content-type": "application/json",
-        },
-      };
-      const { data } = axios.post(
-        "/api/user/login",
-        { email, password },
-        config
-      );
-      toast({
-        title: "Login Successful",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "bottom",
+    const config = {
+      header: {
+        "Content-type": "application/json",
+      },
+    };
+
+    axios
+      .post("/api/user/login", { email, password }, config)
+      .then((response) => {
+        console.log(response.data);
+        toast({
+          title: "Login Successful",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom",
+        });
+        localStorage.setItem("userInfo", JSON.stringify(response.data));
+        history.push("/chats");
+      })
+      .catch((err) => {
+        // console.log(err);
+        toast({
+          title: err.response.data,
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom",
+        });
+      })
+      .finally(() => {
+        setLoading(false);
       });
-      localStorage.setItem("userInfo", JSON.stringify(data));
-      setLoading(false);
-      history.push("/chats");
-    } catch (err) {
-      toast({
-        title: "Error Occurred",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-        position: "bottom",
-      });
-      setLoading(false);
-    }
   };
 
   return (

@@ -64,7 +64,6 @@ const Signup = () => {
         isClosable: true,
         position: "bottom",
       });
-      return;
     }
   };
 
