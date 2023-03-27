@@ -11,8 +11,8 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // check if user exists, email should be unique
-  const userExistes = await User.findOne({ email });
-  if (userExistes) {
+  const userExists = await User.findOne({ email });
+  if (userExists) {
     res.status(400);
     throw new Error("User already exists");
   }
@@ -42,7 +42,7 @@ const registerUser = asyncHandler(async (req, res) => {
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  console.log(user);
+  // console.log(user);
 
   if (user && (await user.matchPassword(password))) {
     res.json({
@@ -69,7 +69,7 @@ const allUsers = asyncHandler(async (req, res) => {
       }
     : {};
 
-  const users = await User.find(keyword);
+  const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
   res.send(users);
 });
 
