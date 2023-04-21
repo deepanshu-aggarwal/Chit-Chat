@@ -9,16 +9,18 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useChatState } from "../../Context/ChatProvider";
 
 const Login = () => {
   const [show, setShow] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const history = useHistory();
+  const navigate = useNavigate();
   const toast = useToast();
+  const { setUser } = useChatState();
 
   const handleShow = () => setShow(!show);
 
@@ -42,10 +44,13 @@ const Login = () => {
       },
     };
 
-    axios
-      .post("/api/user/login", { email, password }, config)
-      .then((response) => {
-        console.log(response.data);
+    try {
+      const { data } = await axios.post(
+        "/api/user/login",
+        { email, password }
+        // config
+      );
+      if (data.success) {
         toast({
           title: "Login Successful",
           status: "success",
@@ -53,22 +58,30 @@ const Login = () => {
           isClosable: true,
           position: "bottom",
         });
-        localStorage.setItem("userInfo", JSON.stringify(response.data));
-        history.push("/chats");
-      })
-      .catch((err) => {
-        // console.log(err);
+        // console.log(data);
+        localStorage.setItem("userInfo", JSON.stringify(data.user));
+        setUser(data.user);
+        navigate("/chats");
+      } else {
         toast({
-          title: err.response.data,
+          title: data.message,
           status: "warning",
           duration: 3000,
           isClosable: true,
           position: "bottom",
         });
-      })
-      .finally(() => {
-        setLoading(false);
+      }
+    } catch (err) {
+      toast({
+        title: err.response.data.message,
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom",
       });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -101,7 +114,7 @@ const Login = () => {
         colorScheme="blue"
         width="100%"
         style={{ marginTop: 15 }}
-        onClick={() => submitHandler()}
+        onClick={submitHandler}
         isLoading={loading}
       >
         Login

@@ -10,7 +10,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import axios from "axios";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   const [show, setShow] = useState(false);
@@ -21,7 +21,7 @@ const Signup = () => {
   const [pic, setPic] = useState("");
   const [loading, setLoading] = useState(false);
   const toast = useToast();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleShow = () => setShow(!show);
 
@@ -50,10 +50,10 @@ const Signup = () => {
         .then((data) => {
           setPic(data.url.toString());
           setLoading(false);
-          console.log(data);
+          // console.log(data);
         })
         .catch((err) => {
-          console.log(err);
+          // console.log(err);
           setLoading(false);
         });
     } else {
@@ -92,32 +92,40 @@ const Signup = () => {
     }
 
     try {
-      const config = {
-        header: {
-          "Content-type": "application/json",
-        },
-      };
-      const { data } = axios.post(
-        "/api/user",
-        {
-          name,
-          email,
-          password,
-          pic,
-        },
-        config
-      );
+      // const config = {
+      //   header: {
+      //     "Content-type": "application/json",
+      //   },
+      // };
+      const { data } = axios.post("/api/user", {
+        name,
+        email,
+        password,
+        pic,
+      });
+
+      console.log("response", data);
+      if (data.success === true && data.user) {
+        toast({
+          title: data.message,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom",
+        });
+        navigate("/");
+      }
+    } catch (err) {
       toast({
-        title: "Registration Successful",
-        status: "success",
+        title: err.response.data.message,
+        status: "warning",
         duration: 3000,
         isClosable: true,
         position: "bottom",
       });
-      localStorage.setItem("userInfo", JSON.stringify(data));
+    } finally {
       setLoading(false);
-      history.push("/chats");
-    } catch (err) {}
+    }
   };
 
   return (
@@ -183,7 +191,7 @@ const Signup = () => {
         colorScheme="blue"
         width="100%"
         style={{ marginTop: 15 }}
-        onClick={() => submitHandler()}
+        onClick={submitHandler}
         isLoading={loading}
       >
         Sign Up
