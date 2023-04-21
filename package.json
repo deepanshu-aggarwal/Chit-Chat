@@ -21,7 +21,6 @@
     "framer-motion": "^7.6.6",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.7.2",
-    "nodemon": "^2.0.20",
-    "react-router-dom": "^5.3.4"
+    "nodemon": "^2.0.20"
   }
 }
