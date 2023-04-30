@@ -1,9 +1,3 @@
-// chatName
-// isGroupChat
-// users
-// latestMessage
-// groupAdmin
-
 const mongoose = require("mongoose");
 const User = require("./userModel");
 const Message = require("./messageModel");

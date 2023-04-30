@@ -1,79 +1,93 @@
 const expressAsyncHandler = require("express-async-handler");
 const Chat = require("../models/chatModel");
 const User = require("../models/userModel");
+const Message = require("../models/messageModel");
 
-const accessChat = expressAsyncHandler(async (req, res) => {
+const accessChat = async (req, res) => {
   const { userId } = req.body;
 
   if (!userId) {
-    console.log("UserId params not sent in request");
-    return res.sendStatus(400);
+    return res
+      .status(400)
+      .send({ success: false, message: "UserId params not sent in request" });
   }
 
-  let isChat = await Chat.find({
-    isGroupChat: false,
-    $and: [
-      { users: { $elemMatch: { $eq: req.user._id } } },
-      { users: { $elemMatch: { $eq: userId } } },
-    ],
-  })
-    .populate("users", "-password")
-    .populate("latestMessage");
-  // populate fetches the information from the User model as chatmodel's users array consist of id referencing to User
-  // the first argument is the name of the field in model to populate
+  try {
+    const member = await User.findById(userId);
+    if (!member)
+      return res
+        .status(400)
+        .send({ success: false, message: "Member doesn't exists" });
 
-  isChat = await User.populate(isChat, {
-    path: "latestMessage.sender",
-    select: "name pic email",
-  });
-  // to get the sender of the message User model is used to populate a specific sender field in Message model
-  // and selecting only desired fields from User model
-
-  if (isChat.length > 0) {
-    res.status(200);
-    res.send(isChat[0]);
-  } else {
-    const chatData = {
-      chatName: "sender",
+    let isChat = await Chat.findOne({
       isGroupChat: false,
-      users: [req.user._id, userId],
-    };
+      $and: [
+        { users: { $elemMatch: { $eq: req.user._id } } },
+        { users: { $elemMatch: { $eq: userId } } },
+      ],
+    })
+      .populate("users", "-password")
+      .populate("latestMessage");
+    // populate fetches the information from the User model as chatmodel's users array consist of id referencing to User
+    // the first argument is the name of the field in model to populate
 
-    try {
+    isChat = await Message.populate(isChat, {
+      path: "latestMessage.sender",
+      select: "name pic email",
+    });
+    // to get the sender of the message User model is used to populate a specific sender field in Message model
+    // and selecting only desired fields from User model
+    if (isChat) {
+      res
+        .status(200)
+        .send({ success: true, message: "Chat Accessed", chat: isChat });
+    } else {
+      const chatData = {
+        chatName: "sender",
+        isGroupChat: false,
+        users: [req.user._id, userId],
+      };
+
       const createdChat = await Chat.create(chatData);
       const fullChat = await Chat.findOne({ _id: createdChat._id }).populate(
         "users",
         "-password"
       );
-      res.send(200).send(fullChat);
-    } catch (error) {
-      res.status(400);
-      throw new Error(error.message);
+      res
+        .status(201)
+        .send({ success: true, message: "New chat created", chat: fullChat });
     }
+  } catch (error) {
+    res
+      .status(500)
+      .send({ success: false, message: "Something went wrong", error });
   }
-});
+};
 
-const fetchChats = expressAsyncHandler(async (req, res) => {
+const fetchChats = async (req, res) => {
   try {
-    Chat.find({
+    let chats = Chat.find({
       users: { $elemMatch: { $eq: req.user._id } },
     })
       .populate("users", "-password")
       .populate("groupAdmin", "-password")
       .populate("latestMessage")
-      .sort({ updatedAt: -1 })
-      .then(async (chats) => {
-        chats = await User.populate(chats, {
-          path: "latestMessage.sender",
-          select: "name pic email",
-        });
-        res.status(200).send(chats);
-      });
+      .sort({ updatedAt: -1 });
+
+    chats = await Message.populate(chats, {
+      path: "latestMessage.sender",
+      select: "name pic email",
+    });
+
+    res
+      .status(200)
+      .send({ success: true, message: "Chats fetched successfully", chats });
   } catch (error) {
-    res.status(400);
-    throw new Error(error.message);
+    res
+      .status(500)
+      .send({ success: false, message: "Something went wrong", error });
   }
-});
+};
 
 const createGroupChat = expressAsyncHandler(async (req, res) => {
   if (!req.body.users || !req.body.name) {
@@ -87,25 +101,30 @@ const createGroupChat = expressAsyncHandler(async (req, res) => {
 
   users.push(req.user._id);
 
-  const group = await Chat.create({
-    chatName: req.body.name,
-    isGroupChat: true,
-    users: [...users],
-    groupAdmin: req.user._id,
-  });
-
   try {
+    const group = {
+      chatName: req.body.name,
+      isGroupChat: true,
+      users: [...users],
+      groupAdmin: req.user._id,
+    };
+
     const groupChat = await Chat.create(group);
     const createdGroupChat = await Chat.findOne({
       _id: { $eq: groupChat._id },
     })
       .populate("users", "-password")
       .populate("groupAdmin", "-password");
-    res.status(201);
-    res.send(createdGroupChat);
+
+    res.status(201).send({
+      success: true,
+      message: "New group chat created",
+      chat: createdGroupChat,
+    });
   } catch (error) {
-    res.status(401);
-    throw new Error(error.message);
+    res
+      .status(500)
+      .send({ success: false, message: "Something went wrong", error });
   }
 });
 
@@ -125,56 +144,85 @@ const renameGroup = expressAsyncHandler(async (req, res) => {
     .populate("groupAdmin", "-password");
 
   if (!updatedChat) {
-    res.status(404);
-    throw new Error("Chat not found");
+    res
+      .status(500)
+      .send({ success: false, message: "Something went wrong", error });
   } else {
-    res.status(200).send(updatedChat);
+    res.status(200).send({
+      success: true,
+      message: "Group name updated",
+      chat: updatedChat,
+    });
   }
 });
 
 const addToGroup = expressAsyncHandler(async (req, res) => {
-  const { userId, chatId } = req.body;
+  const { users, chatId } = req.body;
 
-  const updatedChat = await Chat.findByIdAndUpdate(
-    chatId,
-    {
-      $push: { users: userId },
-    },
-    {
-      new: true,
-    }
-  )
-    .populate("users", "-password")
-    .populate("groupAdmin", "-password");
+  const userIds = JSON.parse(users);
+  try {
+    const chat = await Chat.findById(chatId);
+    const updatedChat = await Chat.findByIdAndUpdate(
+      chatId,
+      {
+        users: [...chat.users, ...userIds],
+      },
+      {
+        new: true,
+      }
+    )
+      .populate("users", "-password")
+      .populate("groupAdmin", "-password");
 
-  if (!updatedChat) {
-    res.status(404);
-    throw new Error("Chat not found");
-  } else {
-    res.status(200).send(updatedChat);
+    res.status(200).send({
+      success: true,
+      message: "Users added to group",
+      chat: updatedChat,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .send({ success: false, message: "Something went wrong", error });
   }
 });
 
 const removeFromGroup = expressAsyncHandler(async (req, res) => {
   const { userId, chatId } = req.body;
 
-  const updatedChat = await Chat.findByIdAndUpdate(
-    chatId,
-    {
-      $pull: { users: userId },
-    },
-    {
-      new: true,
-    }
-  )
-    .populate("users", "-password")
-    .populate("groupAdmin", "-password");
+  try {
+    let updatedChat = await Chat.findByIdAndUpdate(
+      chatId,
+      {
+        $pull: { users: userId },
+      },
+      {
+        new: true,
+      }
+    )
+      .populate("users", "-password")
+      .populate("groupAdmin", "-password");
 
-  if (!updatedChat) {
-    res.status(404);
-    throw new Error("Chat not found");
-  } else {
-    res.status(200).send(updatedChat);
+    if (updatedChat.groupAdmin._id.equals(userId)) {
+      updatedChat = await Chat.findByIdAndUpdate(
+        chatId,
+        {
+          groupAdmin: updatedChat.users[0],
+        },
+        { new: true }
+      )
+        .populate("users", "-password")
+        .populate("groupAdmin", "-password");
+    }
+
+    res.status(200).send({
+      success: true,
+      message: "User removed from group",
+      chat: updatedChat,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .send({ success: false, message: "Something went wrong", error });
   }
 });
 
