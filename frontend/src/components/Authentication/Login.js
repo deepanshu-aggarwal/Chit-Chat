@@ -10,8 +10,8 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useChatState } from "../../Context/ChatProvider";
+import axios from "axios";
 
 const Login = () => {
   const [show, setShow] = useState(false);
@@ -38,18 +38,8 @@ const Login = () => {
       return;
     }
 
-    const config = {
-      header: {
-        "Content-type": "application/json",
-      },
-    };
-
     try {
-      const { data } = await axios.post(
-        "/api/user/login",
-        { email, password }
-        // config
-      );
+      const { data } = await axios.post("/api/user/login", { email, password });
       if (data.success) {
         toast({
           title: "Login Successful",
@@ -58,7 +48,6 @@ const Login = () => {
           isClosable: true,
           position: "bottom",
         });
-        // console.log(data);
         localStorage.setItem("userInfo", JSON.stringify(data.user));
         setUser(data.user);
         navigate("/chats");
