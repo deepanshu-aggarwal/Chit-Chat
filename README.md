@@ -19,6 +19,10 @@ Home page
 
 ![image](https://user-images.githubusercontent.com/73077868/235763418-2af74595-a27d-4085-82aa-fa5d29f7c556.png)
 
+Chatting to user
+
+![image](https://user-images.githubusercontent.com/73077868/235764576-d60fac21-46c7-4374-9377-696a01d738d3.png)
+
 Create new Group
 
 ![image](https://user-images.githubusercontent.com/73077868/235763772-5bb515d7-817c-44c3-bb4f-a0089999eab5.png)
