@@ -4,7 +4,10 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon backend/server.js"
+    "start": "nodemon backend/server.js",
+    "start-prod": "./node_modules/.bin/netlify-lambda",
+    "build": "netlify deploy --prod",
+    "build-prod": "./node_modules/.bin/netlify-lambda"
   },
   "author": "Deepanshu Aggarwal",
   "license": "ISC",
@@ -22,8 +25,10 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.7.2",
     "morgan": "^1.10.0",
+    "netlify-cli": "^14.3.1",
+    "netlify-lambda": "^2.0.16",
     "nodemon": "^2.0.20",
-    "react-lottie": "^1.2.3",
+    "serverless-http": "^3.2.0",
     "socket.io": "^4.6.1"
   }
 }
