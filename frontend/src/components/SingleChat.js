@@ -38,12 +38,12 @@ const SingleChat = () => {
 
   const sendMessage = async (e) => {
     if (!newMessage) return;
-    setNewMessage("");
     socket.emit("stop_typing", selectedChat._id);
     try {
-      const { data } = await axios.post(
-        "/api/message",
-        { content: newMessage, chatId: selectedChat._id },
+      const { data } = await axios.post("/api/message", {
+          content: newMessage,
+          chatId: selectedChat._id,
+        },
         config
       );
       if (data?.success) {
@@ -52,6 +52,8 @@ const SingleChat = () => {
       }
     } catch (error) {
       console.log(error);
+    } finally {
+      setNewMessage("");
     }
   };
 
@@ -126,7 +128,7 @@ const SingleChat = () => {
 
   return (
     <>
-      {selectedChat?.length !== 0 ? (
+      {Object.keys(selectedChat).length !== 0 ? (
         <>
           <Box
             fontSize={{ base: "28px", md: "30px" }}

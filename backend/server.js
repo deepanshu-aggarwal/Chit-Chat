@@ -11,6 +11,7 @@ const { chats } = require("./data/data");
 const Chat = require("./models/chatModel");
 const morgan = require("morgan");
 const path = require("path");
+const serverless = require("serverless-http");
 
 dotenv.config();
 
@@ -22,17 +23,17 @@ app.use(express.json()); // accept json data
 
 // --------------------Deployment----------------------
 
-const __dirname1 = path.resolve();
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname1, "/frontend/build")));
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname1, "frontend", "build", "index.html"));
-  });
-} else {
-  app.get("/", (req, res) => {
-    res.send("API is running successfully");
-  });
-}
+// const __dirname1 = path.resolve();
+// if (process.env.NODE_ENV === "production") {
+//   app.use(express.static(path.join(__dirname1, "/frontend/build")));
+//   app.get("*", (req, res) => {
+//     res.sendFile(path.resolve(__dirname1, "frontend", "build", "index.html"));
+//   });
+// } else {
+//   app.get("/", (req, res) => {
+//     res.send("API is running successfully");
+//   });
+// }
 
 // --------------------Deployment----------------------
 
@@ -60,7 +61,7 @@ const io = require("socket.io")(server, {
 io.on("connection", (socket) => {
   console.log("connected to socket.io");
   socket.on("setup", (userData) => {
-    socket.join(userData._id); // create a seperate socket room for that user
+    socket.join(userData?._id); // create a seperate socket room for that user
     socket.emit("connected"); // after that trigger connected event
   });
 
@@ -79,16 +80,20 @@ io.on("connection", (socket) => {
 
   socket.on("new_message", (newMessageRecieved) => {
     const chat = newMessageRecieved.chat;
-    if (!chat.users) console.log("chat.users not defined");
+    if (!chat?.users) console.log("chat.users not defined");
 
-    chat.users.forEach((user) => {
-      if (user._id === newMessageRecieved.sender._id) return;
-      socket.in(user._id).emit("message_recieved", newMessageRecieved);
+    chat?.users.forEach((user) => {
+      if (user?._id === newMessageRecieved.sender._id) return;
+      socket.in(user?._id).emit("message_recieved", newMessageRecieved);
     });
   });
 
   socket.off("setup", () => {
     console.log("USER DISCONNECTED");
-    socket.leave(userData._id);
+    socket.leave(userData?._id);
   });
 });
+
+// app.use("./netlify/functions/server", router);
+
+module.exports.handler = serverless(app);

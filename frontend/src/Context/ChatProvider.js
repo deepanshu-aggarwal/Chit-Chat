@@ -14,12 +14,18 @@ const ChatProvider = ({ children }) => {
 
   // axios.defaults.headers.common["Authorization"] = `Bearer ${user.token ?? ""}`;
 
-  useEffect(() => {
-    const userInfo = JSON.parse(localStorage.getItem("userInfo")) || user;
+  const fetchUser = () => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo"));
     if (!userInfo) {
       navigate("/");
+    } else{
+      setUser(userInfo);
+      navigate("/chats")
     }
-    setUser(userInfo);
+  }
+
+  useEffect(() => {
+    fetchUser();
   }, []);
 
   return (

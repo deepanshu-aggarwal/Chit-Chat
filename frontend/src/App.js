@@ -9,6 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} exact />
         <Route path="/chats" element={<ChatPage />} />
+        <Route path="*" element={<div>Not found</div>} />
       </Routes>
     </div>
   );
