@@ -8,7 +8,7 @@ import GroupChatModal from "./miscellaneous/GroupChatModal";
 import { getSender } from "../utils/logics";
 
 const MyChats = () => {
-  const [loggedUser, setLoggedUser] = useState();
+  // const [loggedUser, setLoggedUser] = useState();
   const { chats, setChats, selectedChat, setSelectedChat, user } =
     useChatState();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -26,7 +26,7 @@ const MyChats = () => {
   };
 
   useEffect(() => {
-    setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));
+    // setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));
     fetchChats();
   }, []);
 
@@ -72,7 +72,7 @@ const MyChats = () => {
       >
         {chats ? (
           <Stack overflowY="scroll">
-            {chats.map((chat) => (
+            {chats?.map((chat) => (
               <Box
                 key={chat._id}
                 cursor="pointer"
@@ -85,7 +85,7 @@ const MyChats = () => {
               >
                 <Text>
                   {!chat.isGroupChat
-                    ? getSender(chat.users, loggedUser).name
+                    ? getSender(chat.users, user).name
                     : chat.chatName}
                 </Text>
               </Box>

@@ -27,7 +27,7 @@ import ChatSkeleton from "../ChatSkeleton";
 import UserListItem from "../UserAvatar/UserListItem";
 import axios from "axios";
 import { getSender } from "../../utils/logics";
-import NotificationBadge, { Effect } from "react-notification-badge";
+// import NotificationBadge, { Effect } from "react-notification-badge";
 
 const SideDrawer = () => {
   const {
@@ -42,7 +42,6 @@ const SideDrawer = () => {
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingChat, setLoadingChat] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -52,8 +51,10 @@ const SideDrawer = () => {
   };
 
   const handleLogout = () => {
-    setUser(null);
+    setUser({});
+    setSelectedChat({});
     localStorage.removeItem("userInfo");
+    navigate("/");
     toast({
       title: "Logout successfully",
       status: "success",
@@ -61,7 +62,6 @@ const SideDrawer = () => {
       isClosable: true,
       position: "top",
     });
-    navigate("/");
   };
 
   const handleSearch = async () => {
@@ -127,10 +127,10 @@ const SideDrawer = () => {
         <div>
           <Menu>
             <MenuButton p={1}>
-              <NotificationBadge
+              {/* <NotificationBadge
                 count={notification.length}
                 effect={Effect.SCALE}
-              />
+              /> */}
               <BellIcon fontSize="2xl" m={1} />
             </MenuButton>
             <MenuList pl={2}>

@@ -8,7 +8,7 @@ import {
   isSameSenderMargin,
   isSameUser,
 } from "../utils/logics";
-import Lottie from "react-lottie";
+// import Lottie from "react-lottie";
 import TypingAnimation from "../animations/typing.json";
 
 const ScrollableChat = ({ messages, isTyping }) => {
@@ -68,12 +68,13 @@ const ScrollableChat = ({ messages, isTyping }) => {
           </div>
         ))}
         {isTyping ? (
-          <Lottie
-            options={defaultOptions}
-            style={{ overflow: "none", margin: "0 0 0 36px" }}
-            width={71}
-            height={34}
-          />
+          // <Lottie
+          //   options={defaultOptions}
+          //   style={{ overflow: "none", margin: "0 0 0 36px" }}
+          //   width={71}
+          //   height={34}
+          // />
+          <div>Typing...</div>
         ) : (
           <></>
         )}

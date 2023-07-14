@@ -7,7 +7,7 @@ import { useChatState } from "../Context/ChatProvider";
 
 const ChatPage = () => {
   const { user } = useChatState();
-
+  
   return (
     <div style={{ width: "100%" }}>
       {user.token && <SideDrawer />}

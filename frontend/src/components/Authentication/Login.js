@@ -40,7 +40,10 @@ const Login = () => {
 
     try {
       const { data } = await axios.post("/api/user/login", { email, password });
-      if (data.success) {
+      if (data?.success) {
+        setUser(data.user);
+        localStorage.setItem("userInfo", JSON.stringify(data.user));
+        navigate("/chats");
         toast({
           title: "Login Successful",
           status: "success",
@@ -48,12 +51,9 @@ const Login = () => {
           isClosable: true,
           position: "bottom",
         });
-        localStorage.setItem("userInfo", JSON.stringify(data.user));
-        setUser(data.user);
-        navigate("/chats");
       } else {
         toast({
-          title: data.message,
+          title: data?.message,
           status: "warning",
           duration: 3000,
           isClosable: true,

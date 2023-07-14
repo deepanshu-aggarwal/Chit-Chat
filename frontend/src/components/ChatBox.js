@@ -5,6 +5,7 @@ import SingleChat from "./SingleChat";
 
 const ChatBox = () => {
   const { selectedChat } = useChatState();
+
   return (
     <Box
       display={{ base: selectedChat ? "block" : "none", md: "flex" }}

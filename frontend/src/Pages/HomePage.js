@@ -8,20 +8,11 @@ import {
   Tab,
   Text,
 } from "@chakra-ui/react";
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 import Login from "../components/Authentication/Login";
 import Signup from "../components/Authentication/Signup";
-import { useChatState } from "../Context/ChatProvider";
 
 const HomePage = () => {
-  const navigate = useNavigate();
-  const { user } = useChatState();
-
-  useEffect(() => {
-    if (user.length) navigate("/chats");
-  }, []);
-
   return (
     <Container maxW="xl" centerContent>
       <Box
