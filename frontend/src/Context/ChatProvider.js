@@ -9,10 +9,9 @@ const ChatProvider = ({ children }) => {
   const [selectedChat, setSelectedChat] = useState({});
   const [chats, setChats] = useState([]);
   const [notification, setNotification] = useState([]);
+  const [refresh, setRefresh] = useState(false);
 
   const navigate = useNavigate();
-
-  // axios.defaults.headers.common["Authorization"] = `Bearer ${user.token ?? ""}`;
 
   const fetchUser = () => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
@@ -39,6 +38,8 @@ const ChatProvider = ({ children }) => {
         setChats,
         notification,
         setNotification,
+        refresh,
+        setRefresh
       }}
     >
       {children}

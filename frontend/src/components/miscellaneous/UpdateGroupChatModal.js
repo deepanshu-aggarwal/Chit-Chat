@@ -26,8 +26,9 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [renameLoading, setRenameLoading] = useState(false);
   const toast = useToast();
-  const { user, chats, setChats, selectedChat, setSelectedChat } =
+  const { user, selectedChat, setRefresh, setSelectedChat } =
     useChatState();
+
   const config = {
     headers: { Authorization: `Bearer ${user?.token}` },
   };
@@ -68,9 +69,8 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
         config
       );
       if (data?.success) {
-        // setChats(chats.filter((chat) => chat._id !== selectedChat._id));
-        // await setChats([data.chat, ...chats]);
-        // setSelectedChat(data.chat);
+        setRefresh(prev => !prev);
+        onClose();
         toast({
           title: data?.message,
           status: "success",
@@ -78,7 +78,6 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
           isClosable: true,
           position: "top",
         });
-        onClose();
       }
     } catch (error) {
       console.log(error);
@@ -94,7 +93,6 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
     try {
       const { data } = await axios.get(`/api/user?search=${search}`, config);
       setSearchResult(data.users);
-      console.log(data.users);
     } catch (error) {
       console.log(error);
     } finally {
@@ -106,15 +104,15 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
     if (
       newMembers.includes(newUser) ||
       selectedChat.users.find((u) => u._id === newUser._id)
-    ) {
-      toast({
-        title: "User already added or in the group",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
-      return;
+      ) {
+        toast({
+          title: "User already added or in the group",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+          position: "top",
+        });
+        return;
     } else if (selectedChat.groupAdmin._id !== user._id) {
       toast({
         title: "Only admins can update",
@@ -127,7 +125,7 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
     }
     setNewMembers([...newMembers, newUser]);
   };
-
+  
   const handleAddUsersToGroup = async () => {
     try {
       const { data } = await axios.put(
@@ -139,6 +137,10 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
         config
       );
       if (data?.success) {
+        setSelectedChat(data.chat);
+        onClose();
+        setSearch("");
+        setNewMembers([]);
         toast({
           title: "Users added to group",
           status: "success",
@@ -146,15 +148,12 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
           isClosable: true,
           position: "top",
         });
-        onClose();
-        setSearch("");
-        setNewMembers([]);
       }
     } catch (error) {
       console.log(error);
     }
   };
-
+  
   const handleRemoveUser = async (member) => {
     if (user._id !== selectedChat.groupAdmin._id || member._id === user._id) {
       toast({
@@ -166,7 +165,7 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
       });
       return;
     }
-
+    
     try {
       const { data } = await axios.put(
         "/api/chat/group-remove",
@@ -174,6 +173,7 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
         config
       );
       if (data?.success) {
+        setSelectedChat(data.chat);
         toast({
           title: "User removed from group",
           status: "success",
@@ -187,7 +187,7 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
       console.log(error);
     }
   };
-
+  
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
@@ -197,7 +197,7 @@ const UpdateGroupChatModal = ({ isOpen, onOpen, onClose }) => {
           fontFamily="Work sans"
           display="flex"
           justifyContent="center"
-        >
+          >
           {selectedChat?.chatName}
         </ModalHeader>
         <ModalCloseButton />
