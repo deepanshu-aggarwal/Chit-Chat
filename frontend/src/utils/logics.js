@@ -2,6 +2,11 @@ export const getSender = (users, loggedUser) => {
   return users && users.filter((user) => user._id !== loggedUser._id)[0];
 };
 
+export const getMessageSenderById = (users, userId, loggedUser) => {
+  if(loggedUser._id === userId) return 'You';
+  return users && users.filter((u) => u._id === userId)[0].name;
+}
+
 export const isSameSender = (messages, i, userId) => {
   return (
     i + 1 < messages.length &&

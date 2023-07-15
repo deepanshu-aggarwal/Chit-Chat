@@ -22,7 +22,7 @@ const ENDPOINT = "http://localhost:5000";
 let socket, selectedChatCompare;
 
 const SingleChat = () => {
-  const { user, selectedChat, setSelectedChat, notification, setNotification } =
+  const { user, selectedChat, setSelectedChat, notification, setNotification, setRefresh } =
     useChatState();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [messages, setMessages] = useState([]);
@@ -50,6 +50,7 @@ const SingleChat = () => {
         setMessages([...messages, data.data]);
         socket.emit("new_message", data.data);
       }
+      setRefresh(prev => !prev);
     } catch (error) {
       console.log(error);
     } finally {

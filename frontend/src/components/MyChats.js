@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useChatState } from "../Context/ChatProvider";
 import { Box, Button, Stack, Text, useDisclosure } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import ChatSkeleton from "./ChatSkeleton";
 import GroupChatModal from "./miscellaneous/GroupChatModal";
-import { getSender } from "../utils/logics";
+import { getMessageSenderById, getSender } from "../utils/logics";
 
 const MyChats = () => {
-  // const [loggedUser, setLoggedUser] = useState();
-  const { chats, setChats, selectedChat, setSelectedChat, user } =
+  const { chats, setChats, selectedChat, setSelectedChat, user, refresh } =
     useChatState();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const currentDate = new Date();
 
   const fetchChats = async () => {
     try {
@@ -26,9 +26,8 @@ const MyChats = () => {
   };
 
   useEffect(() => {
-    // setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));
     fetchChats();
-  }, []);
+  }, [refresh]);
 
   return (
     <Box
@@ -76,18 +75,50 @@ const MyChats = () => {
               <Box
                 key={chat._id}
                 cursor="pointer"
-                bg={selectedChat === chat ? "#38b2ac" : "#e8e8e8"}
-                color={selectedChat === chat ? "white" : "black"}
+                bg={selectedChat._id === chat._id ? "#38b2ac" : "#e8e8e8"}
+                color={selectedChat._id === chat._id ? "white" : "black"}
                 px={3}
                 py={2}
                 borderRadius="lg"
                 onClick={() => setSelectedChat(chat)}
               >
-                <Text>
+                <Text
+                  fontSize={16}
+                >
                   {!chat.isGroupChat
                     ? getSender(chat.users, user).name
                     : chat.chatName}
                 </Text>
+                <Box
+                  display='flex'
+                  justifyContent='space-between'
+                >
+                  <Text
+                    fontSize={14}
+                    fontWeight={600}
+                  >
+                    {chat.isGroupChat ? `${getMessageSenderById(chat.users, chat.latestMessage.sender, user)} : ` : ''}
+                    {chat.latestMessage.content}
+                  </Text>
+                  <Text
+                    fontSize={12}
+                    color={selectedChat._id === chat._id ? "white" : "gray"}
+                    fontWeight={500}
+                  >
+                    {
+                      new Date(chat.latestMessage.createdAt).toDateString() === currentDate.toDateString() ?
+                      new Date(chat.latestMessage.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      }) :
+                      new Date(chat.latestMessage.createdAt).toLocaleString([], {
+                        dateStyle: "short",
+                        timeStyle: "short",
+                      })
+                    } 
+                  </Text>
+                </Box>
               </Box>
             ))}
           </Stack>
