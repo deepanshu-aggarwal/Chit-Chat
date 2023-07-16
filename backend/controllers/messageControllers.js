@@ -46,11 +46,51 @@ const sendMessage = async (req, res) => {
   }
 };
 
+const deleteMessage = async (req, res) => {
+  const { messageId } = req.params;
+
+  if (!messageId) {
+    res.status(400).send({ success: false, message: "MessageId is required" });
+    return;
+  }
+
+  try {
+    const message = await Message.findById(messageId).populate(
+      "sender",
+      "name"
+    );
+    if (!message) {
+      res.status(400).send({ success: false, message: "Message not found" });
+      return;
+    }
+
+    if (!req.user._id.equals(message.sender._id)) {
+      res
+        .status(400)
+        .send({ success: false, message: "Only sender can delete message" });
+      return;
+    }
+
+    await Message.findByIdAndDelete(messageId);
+
+    res.status(200).send({
+      success: true,
+      message: "Message deleted successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .send({ success: false, message: "Something went wrong", error });
+  }
+};
+
 const fetchMessages = async (req, res) => {
   const { chatId } = req.params;
 
-  if (!chatId)
+  if (!chatId) {
     res.status(400).send({ success: false, message: "ChatId is required" });
+    return;
+  }
 
   try {
     let messages = await Message.find({ chat: chatId })
@@ -73,4 +113,4 @@ const fetchMessages = async (req, res) => {
   }
 };
 
-module.exports = { sendMessage, fetchMessages };
+module.exports = { sendMessage, deleteMessage, fetchMessages };

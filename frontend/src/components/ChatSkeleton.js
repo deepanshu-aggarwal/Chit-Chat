@@ -4,15 +4,9 @@ import React from "react";
 const ChatSkeleton = () => {
   return (
     <Stack>
-      <Skeleton height="45px" />
-      <Skeleton height="45px" />
-      <Skeleton height="45px" />
-      <Skeleton height="45px" />
-      <Skeleton height="45px" />
-      <Skeleton height="45px" />
-      <Skeleton height="45px" />
-      <Skeleton height="45px" />
-      <Skeleton height="45px" />
+      {Array.from({ length: 9 }).map((_, i) => (
+        <Skeleton height="45px" />
+      ))}
     </Stack>
   );
 };
