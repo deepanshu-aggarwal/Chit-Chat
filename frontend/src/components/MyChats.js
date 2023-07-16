@@ -1,17 +1,27 @@
 import React, { useEffect } from "react";
 import { useChatState } from "../Context/ChatProvider";
-import { Box, Button, Stack, Text, useDisclosure } from "@chakra-ui/react";
+import {
+  Avatar,
+  Box,
+  Button,
+  Stack,
+  Text,
+  useDisclosure,
+} from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import ChatSkeleton from "./ChatSkeleton";
 import GroupChatModal from "./miscellaneous/GroupChatModal";
-import { getMessageSenderById, getSender } from "../utils/logics";
+import {
+  getMessageSenderById,
+  getMessageTime,
+  getSender,
+} from "../utils/logics";
 
 const MyChats = () => {
   const { chats, setChats, selectedChat, setSelectedChat, user, refresh } =
     useChatState();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const currentDate = new Date();
 
   const fetchChats = async () => {
     try {
@@ -75,6 +85,8 @@ const MyChats = () => {
               <Box
                 key={chat._id}
                 cursor="pointer"
+                display="flex"
+                gap={5}
                 bg={selectedChat._id === chat._id ? "#38b2ac" : "#e8e8e8"}
                 color={selectedChat._id === chat._id ? "white" : "black"}
                 px={3}
@@ -82,42 +94,39 @@ const MyChats = () => {
                 borderRadius="lg"
                 onClick={() => setSelectedChat(chat)}
               >
-                <Text
-                  fontSize={16}
-                >
-                  {!chat.isGroupChat
-                    ? getSender(chat.users, user).name
-                    : chat.chatName}
-                </Text>
-                <Box
-                  display='flex'
-                  justifyContent='space-between'
-                >
-                  <Text
-                    fontSize={14}
-                    fontWeight={600}
-                  >
-                    {chat.isGroupChat ? `${getMessageSenderById(chat.users, chat.latestMessage.sender, user)} : ` : ''}
-                    {chat.latestMessage.content}
+                <Avatar
+                  src={
+                    chat.isGroupChat
+                      ? `https://icon-library.com/images/user-icon-png-transparent/user-icon-png-transparent-10.jpg`
+                      : `https://icon-library.com/images/google-user-icon/google-user-icon-6.jpg`
+                  }
+                />
+                <Box width="100%">
+                  <Text fontSize={16}>
+                    {!chat.isGroupChat
+                      ? getSender(chat.users, user).name
+                      : chat.chatName}
                   </Text>
-                  <Text
-                    fontSize={12}
-                    color={selectedChat._id === chat._id ? "white" : "gray"}
-                    fontWeight={500}
-                  >
-                    {
-                      new Date(chat.latestMessage.createdAt).toDateString() === currentDate.toDateString() ?
-                      new Date(chat.latestMessage.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true,
-                      }) :
-                      new Date(chat.latestMessage.createdAt).toLocaleString([], {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      })
-                    } 
-                  </Text>
+                  <Box display="flex" justifyContent="space-between">
+                    <Text fontSize={14} fontWeight={600}>
+                      {chat.isGroupChat
+                        ? `${getMessageSenderById(
+                            chat.users,
+                            chat.latestMessage.sender,
+                            user
+                          )} : `
+                        : ""}
+                      {chat.latestMessage.content}
+                    </Text>
+                    <Text
+                      fontSize={12}
+                      color={selectedChat._id === chat._id ? "white" : "gray"}
+                      fontWeight={500}
+                      alignSelf="flex-end"
+                    >
+                      {getMessageTime(chat?.latestMessage.createdAt)}
+                    </Text>
+                  </Box>
                 </Box>
               </Box>
             ))}

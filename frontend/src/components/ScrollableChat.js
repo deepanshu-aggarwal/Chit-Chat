@@ -1,26 +1,64 @@
-import { Avatar, Box, Tooltip } from "@chakra-ui/react";
-import React from "react";
+import { Avatar, Box, Tooltip, useToast } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons";
+import React, { useState } from "react";
 import ScrollableFeed from "react-scrollable-feed";
 import { useChatState } from "../Context/ChatProvider";
 import {
+  getMessageTime,
+  getSender,
+  isFirstMessage,
   isLastMessage,
   isSameSender,
   isSameSenderMargin,
+  isSameSenderMessage,
   isSameUser,
 } from "../utils/logics";
 // import Lottie from "react-lottie";
-import TypingAnimation from "../animations/typing.json";
+// import TypingAnimation from "../animations/typing.json";
+import axios from "axios";
 
-const ScrollableChat = ({ messages, isTyping }) => {
-  const { user } = useChatState();
+const ScrollableChat = ({ messages, setMessages, isTyping }) => {
+  const toast = useToast();
+  const { user, selectedChat } = useChatState();
+  const [hoverMessage, setHoverMessage] = useState(null);
 
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: TypingAnimation,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
+  const config = {
+    headers: { Authorization: `Bearer ${user?.token}` },
+  };
+
+  // const defaultOptions = {
+  //   loop: true,
+  //   autoplay: true,
+  //   animationData: TypingAnimation,
+  //   rendererSettings: {
+  //     preserveAspectRatio: "xMidYMid slice",
+  //   },
+  // };
+
+  const handleHoverIn = (messageId) => setHoverMessage(messageId);
+
+  const handleHoverOut = () => setHoverMessage(null);
+
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      const { data } = await axios.delete(
+        `/api/message/delete/${messageId}`,
+        config
+      );
+      if (data?.success) {
+        const updatedMessages = messages.filter((m) => m._id !== messageId);
+        setMessages(updatedMessages);
+        toast({
+          title: "Message deleted successfully",
+          status: "success",
+          duration: 1000,
+          isClosable: true,
+          position: "top",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -53,18 +91,57 @@ const ScrollableChat = ({ messages, isTyping }) => {
                 />
               </Tooltip>
             )}
-            <span
+            <div
               style={{
                 padding: "5px 15px",
-                borderRadius: "20px",
+                borderRadius: "15px",
                 maxWidth: "75%",
                 backgroundColor:
                   message.sender._id !== user._id ? "#bee3f8" : "#b9f5d0",
                 marginLeft: isSameSenderMargin(messages, idx, user._id),
               }}
+              onMouseEnter={() => handleHoverIn(message._id)}
+              onMouseLeave={handleHoverOut}
             >
-              {message.content}
-            </span>
+              {(isSameSenderMessage(messages, idx, user._id) ||
+                isFirstMessage(messages, idx, user._id)) && (
+                <div
+                  style={{
+                    color: "darkblue",
+                    fontWeight: "bold",
+                    fontSize: "10px",
+                  }}
+                >
+                  {getSender(selectedChat.users, user).name}
+                </div>
+              )}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "20px",
+                }}
+              >
+                <span>{message.content}</span>
+                {hoverMessage === message._id &&
+                  message.sender._id === user._id && (
+                    <DeleteIcon
+                      fontSize={10}
+                      cursor="pointer"
+                      color="gray.500"
+                      onClick={() => handleDeleteMessage(message._id)}
+                    />
+                  )}
+                <span
+                  style={{
+                    fontSize: "10px",
+                    alignSelf: "flex-end",
+                    color: "gray",
+                  }}
+                >
+                  {getMessageTime(message.createdAt)}
+                </span>
+              </div>
+            </div>
           </div>
         ))}
         {isTyping ? (

@@ -17,13 +17,21 @@ import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
 import axios from "axios";
 import ScrollableChat from "./ScrollableChat";
 import io from "socket.io-client";
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 
 const ENDPOINT = "http://localhost:5000";
 let socket, selectedChatCompare;
 
 const SingleChat = () => {
-  const { user, selectedChat, setSelectedChat, notification, setNotification, setRefresh } =
-    useChatState();
+  const {
+    user,
+    selectedChat,
+    setSelectedChat,
+    notification,
+    setNotification,
+    setRefresh,
+  } = useChatState();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -31,16 +39,24 @@ const SingleChat = () => {
   const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
   const config = {
     headers: { Authorization: `Bearer ${user?.token}` },
   };
 
+  function handleEmojiClick(emojiData, e) {
+    setNewMessage((prev) => prev + emojiData.native);
+    setShowPicker(false);
+  }
+
   const sendMessage = async (e) => {
     if (!newMessage) return;
     socket.emit("stop_typing", selectedChat._id);
     try {
-      const { data } = await axios.post("/api/message", {
+      const { data } = await axios.post(
+        "/api/message",
+        {
           content: newMessage,
           chatId: selectedChat._id,
         },
@@ -50,7 +66,7 @@ const SingleChat = () => {
         setMessages([...messages, data.data]);
         socket.emit("new_message", data.data);
       }
-      setRefresh(prev => !prev);
+      setRefresh((prev) => !prev);
     } catch (error) {
       console.log(error);
     } finally {
@@ -182,9 +198,11 @@ const SingleChat = () => {
                 margin="auto"
               />
             ) : (
-              <>
-                <ScrollableChat messages={messages} isTyping={isTyping} />
-              </>
+              <ScrollableChat
+                messages={messages}
+                setMessages={setMessages}
+                isTyping={isTyping}
+              />
             )}
             <FormControl
               onKeyDown={(e) => {
@@ -194,6 +212,20 @@ const SingleChat = () => {
               mt={3}
               display="flex"
             >
+              <img
+                src={`https://icons.getbootstrap.com/assets/icons/emoji-smile.svg`}
+                alt="Emoji"
+                style={{
+                  cursor: "pointer",
+                  margin: "5px",
+                }}
+                onClick={() => setShowPicker((prev) => !prev)}
+              />
+              {showPicker && (
+                <div style={{ position: "absolute", bottom: "50px" }}>
+                  <Picker data={data} onEmojiSelect={handleEmojiClick} st />
+                </div>
+              )}
               <Input
                 variant="filled"
                 bg="#e0e0e0"
@@ -201,7 +233,12 @@ const SingleChat = () => {
                 value={newMessage}
                 onChange={messageHandler}
               />
-              <Button colorScheme="blue" variant="solid" ml={2}>
+              <Button
+                colorScheme="blue"
+                variant="solid"
+                ml={2}
+                onClick={sendMessage}
+              >
                 Send
               </Button>
             </FormControl>
