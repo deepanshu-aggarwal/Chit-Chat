@@ -1,4 +1,16 @@
-import { Avatar, Box, Tooltip, useToast } from "@chakra-ui/react";
+import {
+  Avatar,
+  Box,
+  Button,
+  Modal,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Tooltip,
+  useDisclosure,
+  useToast,
+} from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 import React, { useState } from "react";
 import ScrollableFeed from "react-scrollable-feed";
@@ -19,8 +31,10 @@ import axios from "axios";
 
 const ScrollableChat = ({ messages, setMessages, isTyping }) => {
   const toast = useToast();
-  const { user, selectedChat } = useChatState();
+  const { user, selectedChat, setRefresh } = useChatState();
   const [hoverMessage, setHoverMessage] = useState(null);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const config = {
     headers: { Authorization: `Bearer ${user?.token}` },
@@ -39,15 +53,19 @@ const ScrollableChat = ({ messages, setMessages, isTyping }) => {
 
   const handleHoverOut = () => setHoverMessage(null);
 
-  const handleDeleteMessage = async (messageId) => {
+  const handleDeleteMessage = async () => {
     try {
       const { data } = await axios.delete(
-        `/api/message/delete/${messageId}`,
+        `/api/message/delete/${selectedMessage}`,
         config
       );
       if (data?.success) {
-        const updatedMessages = messages.filter((m) => m._id !== messageId);
+        const updatedMessages = messages.filter(
+          (m) => m._id !== selectedMessage
+        );
         setMessages(updatedMessages);
+        setRefresh((prev) => !prev);
+        onClose();
         toast({
           title: "Message deleted successfully",
           status: "success",
@@ -93,7 +111,7 @@ const ScrollableChat = ({ messages, setMessages, isTyping }) => {
             )}
             <div
               style={{
-                padding: "5px 15px",
+                padding: "5px 10px",
                 borderRadius: "15px",
                 maxWidth: "75%",
                 backgroundColor:
@@ -104,43 +122,46 @@ const ScrollableChat = ({ messages, setMessages, isTyping }) => {
               onMouseLeave={handleHoverOut}
             >
               {(isSameSenderMessage(messages, idx, user._id) ||
-                isFirstMessage(messages, idx, user._id)) && (
+                isFirstMessage(messages, idx, user._id)) &&
+                selectedChat.isGroupChat && (
+                  <div
+                    style={{
+                      color: "darkblue",
+                      fontWeight: "bold",
+                      fontSize: "10px",
+                    }}
+                  >
+                    {getSender(selectedChat.users, user).name}
+                  </div>
+                )}
+              <>
+                <div>{message.content}</div>
                 <div
                   style={{
-                    color: "darkblue",
-                    fontWeight: "bold",
                     fontSize: "10px",
-                  }}
-                >
-                  {getSender(selectedChat.users, user).name}
-                </div>
-              )}
-              <div
-                style={{
-                  display: "flex",
-                  gap: "20px",
-                }}
-              >
-                <span>{message.content}</span>
-                {hoverMessage === message._id &&
-                  message.sender._id === user._id && (
-                    <DeleteIcon
-                      fontSize={10}
-                      cursor="pointer"
-                      color="gray.500"
-                      onClick={() => handleDeleteMessage(message._id)}
-                    />
-                  )}
-                <span
-                  style={{
-                    fontSize: "10px",
-                    alignSelf: "flex-end",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                     color: "gray",
+                    marginTop: "2px",
+                    gap: "5px",
                   }}
                 >
+                  {hoverMessage === message._id &&
+                    message.sender._id === user._id && (
+                      <DeleteIcon
+                        fontSize={10}
+                        cursor="pointer"
+                        color="gray.500"
+                        onClick={() => {
+                          onOpen();
+                          setSelectedMessage(message._id);
+                        }}
+                      />
+                    )}
                   {getMessageTime(message.createdAt)}
-                </span>
-              </div>
+                </div>
+              </>
             </div>
           </div>
         ))}
@@ -156,6 +177,20 @@ const ScrollableChat = ({ messages, setMessages, isTyping }) => {
           <></>
         )}
       </ScrollableFeed>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalContent>
+          <ModalHeader>Do you want to delete message?</ModalHeader>
+          <ModalCloseButton />
+          <ModalFooter>
+            <Button mr={2} onClick={onClose}>
+              Cancel
+            </Button>
+            <Button colorScheme="red" onClick={handleDeleteMessage}>
+              Delete
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

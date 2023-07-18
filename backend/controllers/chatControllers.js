@@ -21,10 +21,7 @@ const accessChat = async (req, res) => {
 
     let isChat = await Chat.findOne({
       isGroupChat: false,
-      $and: [
-        { users: { $elemMatch: { $eq: req.user._id } } },
-        { users: { $elemMatch: { $eq: userId } } },
-      ],
+      users: { $all: [req.user._id, userId] },
     })
       .populate("users", "-password")
       .populate("latestMessage");

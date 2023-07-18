@@ -11,7 +11,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { getSender } from "../utils/logics";
-import { ArrowBackIcon, ViewIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, AttachmentIcon, ViewIcon } from "@chakra-ui/icons";
 import ProfileModal from "./miscellaneous/ProfileModal";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
 import axios from "axios";
@@ -204,44 +204,49 @@ const SingleChat = () => {
                 isTyping={isTyping}
               />
             )}
-            <FormControl
-              onKeyDown={(e) => {
-                e.keyCode === 13 && sendMessage();
-              }}
-              isRequired
-              mt={3}
-              display="flex"
-            >
+            <Box display="flex" alignItems="center" mt={3}>
               <img
                 src={`https://icons.getbootstrap.com/assets/icons/emoji-smile.svg`}
                 alt="Emoji"
                 style={{
+                  width: "25px",
+                  height: "25px",
                   cursor: "pointer",
                   margin: "5px",
                 }}
                 onClick={() => setShowPicker((prev) => !prev)}
               />
               {showPicker && (
-                <div style={{ position: "absolute", bottom: "50px" }}>
+                <div style={{ position: "absolute", bottom: "85px" }}>
                   <Picker data={data} onEmojiSelect={handleEmojiClick} st />
                 </div>
               )}
-              <Input
-                variant="filled"
-                bg="#e0e0e0"
-                placeholder="Enter message"
-                value={newMessage}
-                onChange={messageHandler}
-              />
-              <Button
-                colorScheme="blue"
-                variant="solid"
-                ml={2}
-                onClick={sendMessage}
+              <AttachmentIcon fontSize={25} m={2} cursor="pointer" />
+              <FormControl
+                onKeyDown={(e) => {
+                  e.keyCode === 13 && sendMessage();
+                }}
+                isRequired
+                display="flex"
+                alignItems="center"
               >
-                Send
-              </Button>
-            </FormControl>
+                <Input
+                  variant="filled"
+                  bg="#e0e0e0"
+                  placeholder="Enter message"
+                  value={newMessage}
+                  onChange={messageHandler}
+                />
+                <Button
+                  colorScheme="blue"
+                  variant="solid"
+                  ml={2}
+                  onClick={sendMessage}
+                >
+                  Send
+                </Button>
+              </FormControl>
+            </Box>
           </Box>
         </>
       ) : (

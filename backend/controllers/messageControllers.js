@@ -19,14 +19,16 @@ const sendMessage = async (req, res) => {
 
     const message = await Message.create(newMessage);
 
-    let createdMessage = await Message.findById(message._id)
-      .populate("chat")
-      .populate("sender", "name pic");
+    let createdMessage = await Message.findById(message._id).populate(
+      "sender",
+      "name pic"
+    );
+    // .populate("chat")
 
-    createdMessage = await Chat.populate(createdMessage, {
-      path: "chat.users",
-      select: "name pic email",
-    });
+    // createdMessage = await Chat.populate(createdMessage, {
+    //   path: "chat.users",
+    //   select: "name pic email",
+    // });
 
     await Chat.findByIdAndUpdate(chatId, {
       latestMessage: message,
@@ -72,6 +74,15 @@ const deleteMessage = async (req, res) => {
     }
 
     await Message.findByIdAndDelete(messageId);
+    const chat = await Chat.findById(message.chat);
+
+    if (chat.latestMessage.equals(messageId)) {
+      const messages = await Message.find({ chat: chat._id });
+      await Chat.findByIdAndUpdate(chat._id, {
+        latestMessage:
+          messages.length >= 1 ? messages[messages.length - 1]._id : null,
+      });
+    }
 
     res.status(200).send({
       success: true,
@@ -93,15 +104,15 @@ const fetchMessages = async (req, res) => {
   }
 
   try {
-    let messages = await Message.find({ chat: chatId })
-      .populate("sender", "name email pic")
-      .populate("chat")
-      .sort({ createdAt: 1 });
+    let messages = await Message.find({ chat: chatId }).populate(
+      "sender",
+      "name pic"
+    );
 
-    messages = await Chat.populate(messages, {
-      path: "chat.users",
-      select: "name email pic",
-    });
+    // messages = await Chat.populate(messages, {
+    //   path: "chat.users",
+    //   select: "name email pic",
+    // });
 
     res
       .status(200)

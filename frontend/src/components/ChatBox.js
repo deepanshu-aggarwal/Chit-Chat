@@ -8,7 +8,7 @@ const ChatBox = () => {
 
   return (
     <Box
-      display={{ base: selectedChat ? "block" : "none", md: "flex" }}
+      display={{ base: selectedChat ? "flex" : "none", md: "flex" }}
       flexDirection="column"
       p={3}
       bgColor="white"

@@ -75,7 +75,6 @@ const SideDrawer = () => {
       });
       return;
     }
-
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/user?search=${search}`, config);
@@ -93,8 +92,8 @@ const SideDrawer = () => {
       const { data } = await axios.post("/api/chat", { userId }, config);
       if (data?.success) {
         setSelectedChat(data?.chat);
-        // if (!chats.find((c) => c._id === data.chat._id))
-        setChats([...chats, data.chat]);
+        if (!chats.find((c) => c._id === data.chat._id))
+          setChats([...chats, data.chat]);
       }
       onClose();
     } catch (error) {
@@ -186,6 +185,7 @@ const SideDrawer = () => {
                 mr={2}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.keyCode === 13 && handleSearch()}
               />
               <Button onClick={handleSearch}>Go</Button>
             </Box>
