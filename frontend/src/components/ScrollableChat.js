@@ -86,7 +86,7 @@ const ScrollableChat = ({ messages, setMessages, isTyping }) => {
           <div
             key={message._id}
             style={{
-              marginBottom: isSameUser(messages, idx) ? 3 : 10,
+              marginBottom: isSameUser(messages, idx) ? 3 : 5,
               display: "flex",
               alignItems: "center",
               justifyContent:

@@ -1,5 +1,10 @@
-// import axios from "axios";
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { useNavigate } from "react-router-dom";
 
 const ChatContext = createContext();
@@ -13,15 +18,15 @@ const ChatProvider = ({ children }) => {
 
   const navigate = useNavigate();
 
-  const fetchUser = () => {
+  const fetchUser = useCallback(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
     if (!userInfo) {
       navigate("/");
-    } else{
+    } else {
       setUser(userInfo);
-      navigate("/chats")
+      navigate("/chats");
     }
-  }
+  }, []);
 
   useEffect(() => {
     fetchUser();
@@ -39,7 +44,7 @@ const ChatProvider = ({ children }) => {
         notification,
         setNotification,
         refresh,
-        setRefresh
+        setRefresh,
       }}
     >
       {children}

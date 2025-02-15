@@ -11,6 +11,15 @@ const messageModel = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "chats",
     },
+    type: {
+      type: String,
+      enum: ["Text", "Image", "File"],
+      default: "Text",
+      required: true,
+    },
+    filePath: {
+      type: String,
+    },
   },
   {
     timestamps: true,

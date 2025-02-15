@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   Avatar,
+  Badge,
   Box,
   Button,
   Drawer,
@@ -126,10 +127,7 @@ const SideDrawer = () => {
         <div>
           <Menu>
             <MenuButton p={1}>
-              {/* <NotificationBadge
-                count={notification.length}
-                effect={Effect.SCALE}
-              /> */}
+              <Badge colorScheme="red">{notification.length}</Badge>
               <BellIcon fontSize="2xl" m={1} />
             </MenuButton>
             <MenuList pl={2}>
@@ -140,16 +138,17 @@ const SideDrawer = () => {
                       key={noti._id}
                       onClick={() => {
                         setSelectedChat(noti?.chat);
-                        setNotification(
-                          notification &&
+                        notification &&
+                          setNotification(
                             notification.filter((n) => n._id !== noti._id)
-                        );
+                          );
                       }}
                     >
                       {noti?.chat?.isGroupChat
                         ? `Recieved message from ${noti.chat.chatName}`
                         : `${
-                            getSender(noti.chat.users, user).name
+                            getSender(noti.chat.users, user)?.name
+                            // noti.sender.name
                           } just messages you`}
                     </MenuItem>
                   ))}

@@ -11,7 +11,12 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { getSender } from "../utils/logics";
-import { ArrowBackIcon, AttachmentIcon, ViewIcon } from "@chakra-ui/icons";
+import {
+  ArrowBackIcon,
+  AttachmentIcon,
+  CloseIcon,
+  ViewIcon,
+} from "@chakra-ui/icons";
 import ProfileModal from "./miscellaneous/ProfileModal";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
 import axios from "axios";
@@ -26,6 +31,7 @@ let socket, selectedChatCompare;
 const SingleChat = () => {
   const {
     user,
+    chats,
     selectedChat,
     setSelectedChat,
     notification,
@@ -40,6 +46,7 @@ const SingleChat = () => {
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [file, setFile] = useState(null);
 
   const config = {
     headers: { Authorization: `Bearer ${user?.token}` },
@@ -47,8 +54,11 @@ const SingleChat = () => {
 
   function handleEmojiClick(emojiData, e) {
     setNewMessage((prev) => prev + emojiData.native);
-    setShowPicker(false);
   }
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
 
   const sendMessage = async (e) => {
     if (!newMessage) return;
@@ -118,6 +128,9 @@ const SingleChat = () => {
   useEffect(() => {
     fetchMessages();
     selectedChatCompare = { ...selectedChat };
+    setNewMessage("");
+    setShowPicker(false);
+    setFile(null);
   }, [selectedChat]);
 
   useEffect(() => {
@@ -130,13 +143,19 @@ const SingleChat = () => {
 
   useEffect(() => {
     socket.on("message_recieved", (newMessageRecieved) => {
+      // console.log(selectedChatCompare, newMessageRecieved);
+      setRefresh((prev) => !prev);
       if (
         !selectedChatCompare ||
-        selectedChatCompare._id !== newMessageRecieved.chat._id
+        selectedChatCompare._id !== newMessageRecieved.chat
       ) {
-        if (!notification.includes(newMessageRecieved)) {
-          setNotification([newMessageRecieved, ...notification]);
-        }
+        // if (!notification.includes(newMessageRecieved)) {
+        const notiChat = chats.find(
+          (chat) => chat._id === newMessageRecieved.chat
+        );
+        console.log(notiChat);
+        setNotification([notiChat, ...notification]);
+        // }
       } else {
         setMessages([...messages, newMessageRecieved]);
       }
@@ -204,7 +223,22 @@ const SingleChat = () => {
                 isTyping={isTyping}
               />
             )}
-            <Box display="flex" alignItems="center" mt={3}>
+            {file && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "15px",
+                  color: "gray",
+                  fontWeight: "bold",
+                  margin: file ? "10px" : "0px",
+                }}
+              >
+                <div style={{}}>{file.name}</div>
+                <CloseIcon cursor="pointer" onClick={() => setFile(null)} />
+              </div>
+            )}
+            <Box display="flex" alignItems="center" mt={3} gap={3}>
               <img
                 src={`https://icons.getbootstrap.com/assets/icons/emoji-smile.svg`}
                 alt="Emoji"
@@ -212,7 +246,6 @@ const SingleChat = () => {
                   width: "25px",
                   height: "25px",
                   cursor: "pointer",
-                  margin: "5px",
                 }}
                 onClick={() => setShowPicker((prev) => !prev)}
               />
@@ -221,7 +254,17 @@ const SingleChat = () => {
                   <Picker data={data} onEmojiSelect={handleEmojiClick} st />
                 </div>
               )}
-              <AttachmentIcon fontSize={25} m={2} cursor="pointer" />
+              <AttachmentIcon
+                fontSize={25}
+                cursor="pointer"
+                onClick={() => document.getElementById("fileInput").click()}
+              />
+              <input
+                id="fileInput"
+                type="file"
+                style={{ display: "none" }}
+                onChange={handleFileChange}
+              />
               <FormControl
                 onKeyDown={(e) => {
                   e.keyCode === 13 && sendMessage();
